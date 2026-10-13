@@ -17,16 +17,17 @@
   <main class="scroll" id="main">
 
     <section class="panel profile" aria-label="Профайл">
-      <button class="identity" type="button" data-soon>
+      <button class="identity" type="button" id="profileBtn" aria-label="Профайл засах">
         <span class="avatar" aria-hidden="true">
-          <span class="initials">БТ</span>
+          <img class="avatar-img" id="avatarImg" alt="" hidden>
+          <span class="initials" id="initials">БТ</span>
           <span class="verified">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
           </span>
         </span>
         <span class="who">
-          <span class="name">Б.Тэмүүлэн</span>
-          <span class="email">temuulen@echina.mn</span>
+          <span class="name" id="profileName">Б.Тэмүүлэн</span>
+          <span class="email" id="profileEmail">temuulen@echina.mn</span>
         </span>
         <svg class="chev" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
       </button>
@@ -55,7 +56,7 @@
     <div class="center"><button class="ghost-btn" id="allBtn" type="button">Бүх картыг харах</button></div>
 
     <section class="panel menu" aria-label="Бүртгэл">
-      <button type="button" class="row" data-soon><span class="tile t-user"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c.8-3.6 4-5.5 7.5-5.5s6.7 1.9 7.5 5.5"/></svg></span><span class="label">Миний мэдээлэл</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button type="button" class="row" id="myInfoRow"><span class="tile t-user"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c.8-3.6 4-5.5 7.5-5.5s6.7 1.9 7.5 5.5"/></svg></span><span class="label">Миний мэдээлэл</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
       <button type="button" class="row" data-soon><span class="tile t-wallet"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><path d="M16 15h1.5"/></svg></span><span class="label">Цахим хэтэвч</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
     </section>
 
@@ -119,7 +120,41 @@
       <button type="button" class="btn secondary" id="cancelAdd">Болих</button>
       <button type="button" class="btn primary" id="saveAdd" disabled>Хадгалах</button>
     </div>
+    <button type="button" class="link-btn danger-text" id="deleteFromSheet" hidden>Энэ картыг устгах</button>
   </form>
+</dialog>
+
+<!-- Edit profile -->
+<dialog class="sheet" id="profileDialog" aria-labelledby="profileTitle">
+  <div class="grab" aria-hidden="true"></div>
+  <h3 id="profileTitle">Профайл засах</h3>
+  <div class="pf-avatar">
+    <span class="avatar big" aria-hidden="true">
+      <img class="avatar-img" id="pfAvatarImg" alt="" hidden>
+      <span class="initials" id="pfInitials">БТ</span>
+    </span>
+    <div class="pf-avatar-actions">
+      <label class="pick small">
+        <input type="file" accept="image/*" id="pfAvatarFile">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Зураг солих
+      </label>
+      <button type="button" class="link-btn" id="pfAvatarRemove">Зураг устгах</button>
+    </div>
+  </div>
+  <label class="field">
+    <span>Нэр</span>
+    <input type="text" id="pfName" maxlength="40" autocomplete="name" required>
+  </label>
+  <label class="field">
+    <span>Имэйл</span>
+    <input type="email" id="pfEmail" maxlength="80" autocomplete="email" inputmode="email" placeholder="name@gmail.com">
+  </label>
+  <p class="field-error" id="pfError" role="alert" hidden></p>
+  <div class="actions">
+    <button type="button" class="btn secondary" id="pfCancel">Болих</button>
+    <button type="button" class="btn primary" id="pfSave">Хадгалах</button>
+  </div>
 </dialog>
 
 <!-- View card -->
@@ -130,6 +165,7 @@
   </div>
   <div class="viewer-img"><img id="viewImg" alt=""></div>
   <div class="viewer-actions">
+    <button type="button" class="btn secondary" id="editCard">Засах</button>
     <button type="button" class="btn danger" id="deleteCard">Устгах</button>
   </div>
 </dialog>
