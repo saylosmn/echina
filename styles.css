@@ -9,6 +9,7 @@ body{background:#121722;color:var(--text);font-family:'Montserrat',system-ui,san
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 svg{flex:none}
+[hidden]{display:none!important}
 
 .app{position:relative;max-width:440px;height:100dvh;margin:0 auto;background:var(--bg);overflow:hidden}
 .scroll{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;
@@ -16,6 +17,7 @@ svg{flex:none}
   padding:calc(env(safe-area-inset-top) + 20px) 0 calc(128px + env(safe-area-inset-bottom));
   display:flex;flex-direction:column;gap:20px}
 .scroll::-webkit-scrollbar{display:none}
+.scroll>*{flex-shrink:0}
 
 .panel{margin:0 16px;background:var(--panel);border-radius:22px;overflow:hidden}
 
@@ -41,9 +43,26 @@ svg{flex:none}
 .stats .l{font-size:12px;font-weight:600;color:#aab3c5}
 
 /* section head */
-.sec-head{display:flex;align-items:center;justify-content:space-between;padding:4px 16px 0}
-.sec-head h2{margin:0;font-size:22px;font-weight:700}
-.pill{height:44px;padding:0 18px;border-radius:22px;border:0;background:#c9d2e0;color:#1e2533;font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 16px 0}
+.sec-head h2{margin:0;min-width:0;font-size:clamp(16px,4.8vw,20px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{flex:none;height:44px;padding:0 16px;border-radius:22px;border:0;background:#c9d2e0;color:#1e2533;font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px}
+.pill.busy{opacity:.6}
+
+/* demo (built-in) cards — match the Figma Wallet Card */
+.ccard.demo{display:flex;flex-direction:column;justify-content:space-between;padding:20px;color:var(--fg);background:var(--cbg)}
+.ccard.demo::before,.ccard.demo::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.ccard.demo::before{width:180px;height:180px;right:-40px;top:-60px;background:rgba(255,255,255,.18)}
+.ccard.demo::after{width:150px;height:150px;left:110px;bottom:-80px;background:rgba(255,255,255,.10)}
+.ccard.demo>*{position:relative;z-index:1}
+.ccard.demo .ctop,.ccard.demo .cbot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ccard.demo .brand{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;letter-spacing:.18em}
+.ccard.demo .brand svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
+.ccard.demo .kind{font-size:12px;font-weight:700;white-space:nowrap}
+.ccard.demo .cval{display:flex;flex-direction:column;gap:2px}
+.ccard.demo .val{font-size:30px;font-weight:800;line-height:1.1}
+.ccard.demo .vl{font-size:13px;font-weight:600}
+.ccard.demo .cbot{font-size:12px;font-weight:700;letter-spacing:.06em}
+.ccard.demo .cbot span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* carousel */
 .carousel{--w:min(300px,78vw);display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;

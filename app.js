@@ -76,9 +76,16 @@
   }
 
   // ---------- state ----------
+  // Built-in cards, same as the Figma "Wallet Card" instances
+  const DEMO = [
+    { kind: 'Гишүүн · Gold', val: '12 480', vl: 'урамшууллын оноо', holder: 'Б.ТЭМҮҮЛЭН', code: 'EC 4821 0937', bg: 'linear-gradient(135deg,#ffd27f,#f08a4b)', fg: '#2b1a0e' },
+    { kind: 'Echina Pay', val: '₮245 000', vl: 'хэтэвчний үлдэгдэл', holder: 'Б.ТЭМҮҮЛЭН', code: '•••• 3310', bg: 'linear-gradient(135deg,#5b8cff,#6a3df0)', fg: '#ffffff' },
+    { kind: 'Тасалбар', val: '3', vl: 'идэвхтэй тасалбар', holder: 'Б.ТЭМҮҮЛЭН', code: '2026.12.31 хүртэл', bg: 'linear-gradient(135deg,#5ee8c8,#22a7b8)', fg: '#05201c' }
+  ];
+
   let cards = [];
   let urls = new Map();
-  let activeIndex = 0;
+  let activeIndex = 1; // Figma shows Echina Pay centred
 
   function urlFor(card) {
     if (!urls.has(card.id)) urls.set(card.id, URL.createObjectURL(card.blob));
@@ -106,9 +113,30 @@
     return b;
   }
 
+  function demoCard(d) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ccard demo';
+    b.style.setProperty('--cbg', d.bg);
+    b.style.setProperty('--fg', d.fg);
+    b.setAttribute('aria-label', d.kind);
+    b.innerHTML =
+      '<span class="ctop"><span class="brand"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18.5 15.5A7.5 7.5 0 1 1 19 9H8"/></svg>ECHINA</span><span class="kind"></span></span>' +
+      '<span class="cval"><span class="val"></span><span class="vl"></span></span>' +
+      '<span class="cbot"><span class="holder"></span><span class="code"></span></span>';
+    b.querySelector('.kind').textContent = d.kind;
+    b.querySelector('.val').textContent = d.val;
+    b.querySelector('.vl').textContent = d.vl;
+    b.querySelector('.holder').textContent = d.holder;
+    b.querySelector('.code').textContent = d.code;
+    b.addEventListener('click', () => toast('Жишээ карт. Өөрийнхөө картыг нэмээрэй'));
+    return b;
+  }
+
   function render() {
     pruneUrls();
     carousel.replaceChildren();
+    DEMO.forEach(d => carousel.appendChild(demoCard(d)));
     cards.forEach(c => carousel.appendChild(cardButton(c)));
 
     const add = document.createElement('button');
@@ -119,19 +147,16 @@
     carousel.appendChild(add);
 
     dots.replaceChildren();
-    for (let i = 0; i <= cards.length; i++) dots.appendChild(document.createElement('span'));
+    for (let i = 0; i < carousel.children.length; i++) dots.appendChild(document.createElement('span'));
 
-    // summary + stats
-    $('#summary').innerHTML = cards.length
-      ? `Танд <b>${cards.length}</b> карт хадгалагдсан байна.`
-      : 'Картынхаа зургийг нэмж <b>нэг дор</b> хадгалаарай.';
+    // stats
     $('#statCount').textContent = cards.length;
     const bytes = cards.reduce((s, c) => s + (c.blob ? c.blob.size : 0), 0);
     $('#statSize').textContent = (bytes / 1048576).toFixed(1) + ' MB';
     const last = cards.reduce((m, c) => Math.max(m, c.createdAt || 0), 0);
     $('#statLast').textContent = last ? new Date(last).toLocaleDateString('mn-MN', { month: '2-digit', day: '2-digit' }) : '—';
 
-    activeIndex = Math.min(activeIndex, cards.length);
+    activeIndex = Math.min(activeIndex, carousel.children.length - 1);
     requestAnimationFrame(() => { scrollToIndex(activeIndex, false); updateCarousel(); });
   }
 
@@ -216,7 +241,7 @@
     try {
       await store.put(card);
       cards.push(card);
-      activeIndex = cards.length - 1;
+      activeIndex = DEMO.length + cards.length - 1;
       addDialog.close();
       render();
       toast('Карт нэмэгдлээ');
@@ -278,7 +303,17 @@
   }
 
   // ---------- misc ----------
-  $('#addBtn').addEventListener('click', openAdd);
+  const refreshBtn = $('#refreshBtn');
+  refreshBtn.addEventListener('click', async () => {
+    refreshBtn.classList.add('busy');
+    refreshBtn.disabled = true;
+    const list = await store.all();
+    cards = (list || []).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    render();
+    refreshBtn.classList.remove('busy');
+    refreshBtn.disabled = false;
+    toast('Шинэчлэгдлээ');
+  });
   $('#fab').addEventListener('click', openAdd);
   const expandBtn = $('#expandBtn'), stats = $('#stats');
   expandBtn.addEventListener('click', () => {
