@@ -3,10 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1b5c9a">
+<meta name="theme-color" content="#004dd9">
 <meta name="description" content="Echina — картуудаа нэг дор хадгал">
 <title>Echina</title>
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Echina">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -65,6 +71,7 @@
     </section>
 
     <section class="panel menu" aria-label="Бусад">
+      <button type="button" class="row" id="installRow"><span class="tile t-install"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg></span><span class="label">Нүүр хуудсанд нэмэх</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
       <button type="button" class="row" data-soon><span class="tile t-bell"><svg viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg></span><span class="label">Мэдэгдэл</span><span class="badge">4</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
       <button type="button" class="row" data-soon><span class="tile t-heart"><svg viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg></span><span class="label">Талархал</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
       <button type="button" class="row" data-soon><span class="tile t-survey"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9 12.5l2 2 4-4.5"/></svg></span><span class="label">Санал асуулга</span><svg class="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
@@ -122,6 +129,14 @@
     </div>
     <button type="button" class="link-btn danger-text" id="deleteFromSheet" hidden>Энэ картыг устгах</button>
   </form>
+</dialog>
+
+<!-- Install help (iOS / unsupported) -->
+<dialog class="sheet" id="installDialog" aria-labelledby="installTitle">
+  <div class="grab" aria-hidden="true"></div>
+  <h3 id="installTitle">Нүүр хуудсанд нэмэх</h3>
+  <ol class="steps" id="installSteps"></ol>
+  <div class="actions one"><button type="button" class="btn primary" id="installClose">Ойлголоо</button></div>
 </dialog>
 
 <!-- Edit profile -->

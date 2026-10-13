@@ -528,6 +528,32 @@
     if (t.dataset.tab !== 'profile') toast('Удахгүй нэмэгдэнэ');
   }));
 
+
+  // ---------- add to home screen ----------
+  let deferredInstall = null;
+  const installRow = $('#installRow');
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (standalone) installRow.hidden = true;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+  window.addEventListener('appinstalled', () => { installRow.hidden = true; toast('Нүүр хуудсанд нэмэгдлээ'); });
+  installRow.addEventListener('click', async () => {
+    if (deferredInstall) {
+      deferredInstall.prompt();
+      await deferredInstall.userChoice.catch(() => {});
+      deferredInstall = null;
+      return;
+    }
+    const ua = navigator.userAgent;
+    const ios = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    const steps = ios
+      ? ['Safari хөтөчөөр нээнэ (Chrome биш).', 'Доод талын "Хуваалцах" товчийг дарна.', '"Add to Home Screen" (Нүүр цэсэнд нэмэх) гэснийг сонгоно.', '"Add" дарна.']
+      : ['Хөтчийн цэсийг (⋮) нээнэ.', '"Install app" эсвэл "Add to Home screen" гэснийг сонгоно.', '"Install" дарна.'];
+    const ol = $('#installSteps');
+    ol.replaceChildren(...steps.map(s => { const li = document.createElement('li'); li.textContent = s; return li; }));
+    $('#installDialog').showModal();
+  });
+  $('#installClose').addEventListener('click', () => $('#installDialog').close());
+
   // ---------- boot ----------
   renderProfile();
   load().then(() => { renderProfile(); render(); });
