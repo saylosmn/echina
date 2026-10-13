@@ -22,7 +22,48 @@ svg{flex:none}
 .field-error{margin:10px 0 0;font-size:13px;font-weight:600;color:#ff8a8a}
 .viewer-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .viewer-actions .btn.danger{width:auto}
-.preview .ccard.demo{position:absolute;inset:0;width:100%;height:100%;flex:none;border-radius:0;box-shadow:none;pointer-events:none}
+/* ---------- 3D flip card ---------- */
+.ccard.flip{--t:6px;--r:14px;background:none;box-shadow:none;overflow:visible;transform-style:preserve-3d;border-radius:var(--r);will-change:transform}
+.flip .inner{position:absolute;inset:0;padding:0;border:0;background:none;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.7,.2,1);border-radius:var(--r)}
+.flip.flipped .inner{transform:rotateY(180deg)}
+.flip .face{position:absolute;inset:0;border-radius:var(--r);background:#2a3346 center/cover no-repeat;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.flip .face::after{content:"";position:absolute;inset:0;background:#000;opacity:var(--dim,0);pointer-events:none;transition:opacity .2s}
+.flip .front{transform:translateZ(calc(var(--t) / 2));box-shadow:0 14px 30px rgba(0,0,0,.35)}
+.flip .back{transform:rotateY(180deg) translateZ(calc(var(--t) / 2))}
+.flip .back.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#283143;color:#aab3c5;font-size:14px;font-weight:700}
+.flip .back.empty small{font-size:12px;font-weight:600;color:#8d97ab}
+.flip .edge{position:absolute;background:linear-gradient(var(--dir,90deg),#5f687a,#c9cfda 45%,#aab2c0 55%,#5f687a)}
+.flip .edge.l,.flip .edge.r{top:7px;bottom:7px;width:var(--t)}
+.flip .edge.l{left:0;transform-origin:left center;transform:translateZ(calc(var(--t) / 2)) rotateY(90deg)}
+.flip .edge.r{right:0;transform-origin:right center;transform:translateZ(calc(var(--t) / 2)) rotateY(-90deg)}
+.flip .edge.t,.flip .edge.b{left:7px;right:7px;height:var(--t);--dir:180deg}
+.flip .edge.t{top:0;transform-origin:center top;transform:translateZ(calc(var(--t) / 2)) rotateX(-90deg)}
+.flip .edge.b{bottom:0;transform-origin:center bottom;transform:translateZ(calc(var(--t) / 2)) rotateX(90deg)}
+.flip .edit{position:absolute;top:8px;right:8px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(14,18,26,.55);display:grid;place-items:center;transform:translateZ(calc(var(--t) / 2 + 2px));backdrop-filter:blur(4px)}
+.flip:not(.active) .edit,.flip:not(.active) .hint{opacity:0;pointer-events:none}
+.flip .edit,.flip .hint{transition:opacity .2s}
+.flip .edit svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.flip .hint{position:absolute;left:10px;bottom:10px;padding:4px 10px;border-radius:12px;background:rgba(14,18,26,.55);font-size:11px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px}
+.flip .hint svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* sheet: front/back slots */
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.side{display:flex;flex-direction:column;gap:8px;min-width:0}
+.side-label{font-size:13px;font-weight:700;color:var(--muted)}
+.slot{position:relative;aspect-ratio:300/184;border-radius:14px;overflow:hidden;background:#1a2130;border:2px dashed #4a5468;display:grid;place-items:center;cursor:pointer}
+.slot:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.slot.has{border-style:solid;border-color:transparent}
+.slot input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slot-empty{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#aab3c5}
+.slot-empty svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.link-btn.small{min-height:32px;padding:4px 0;font-size:12px;color:#ff8a8a;align-self:flex-start}
+
+/* viewer: both sides */
+.viewer-img{display:flex;flex-direction:column;justify-content:center;gap:16px;overflow-y:auto}
+.viewer-img figure{margin:0;display:flex;flex-direction:column;gap:8px;min-height:0}
+.viewer-img figure img{width:100%;max-height:38dvh;object-fit:contain;border-radius:14px;background:#1a2130}
+.viewer-img figcaption{font-size:13px;font-weight:700;color:#aab3c5}
 
 .app{position:relative;max-width:440px;height:100dvh;margin:0 auto;background:var(--bg);overflow:hidden}
 .scroll{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;

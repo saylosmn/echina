@@ -63,6 +63,8 @@
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
   }
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  const ICON_EDIT = '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
+  const ICON_FLIP = '<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M6 21v-4h4"/></svg>';
 
   async function resizeImage(file, max = 1600) {
     let src, w, h;
@@ -91,57 +93,51 @@
   }
 
   // ---------- data ----------
-  // Built-in cards, same as the Figma "Wallet Card" instances
-  const DEMO = [
-    { id: 'demo:0', kind: 'Гишүүн · Gold', val: '12 480', vl: 'урамшууллын оноо', code: 'EC 4821 0937', bg: 'linear-gradient(135deg,#ffd27f,#f08a4b)', fg: '#2b1a0e' },
-    { id: 'demo:1', kind: 'Echina Pay', val: '₮245 000', vl: 'хэтэвчний үлдэгдэл', code: '•••• 3310', bg: 'linear-gradient(135deg,#5b8cff,#6a3df0)', fg: '#ffffff' },
-    { id: 'demo:2', kind: 'Тасалбар', val: '3', vl: 'идэвхтэй тасалбар', code: '2026.12.31 хүртэл', bg: 'linear-gradient(135deg,#5ee8c8,#22a7b8)', fg: '#05201c' }
-  ];
   const AVATAR_ID = '__avatar';
   const DEFAULT_PROFILE = { name: 'Б.Тэмүүлэн', email: 'temuulen@echina.mn' };
-
-  let cards = [];                 // user cards
-  let overrides = new Map();      // demo id -> user image record
-  let hiddenDemos = LS.get('echina.hiddenDemos', []);
+  let cards = [];
   let profile = Object.assign({}, DEFAULT_PROFILE, LS.get('echina.profile', {}));
   let avatarBlob = null;
 
+  // older saves kept a single `blob`; treat it as the front side
+  const normalize = r => ({ id: r.id, name: r.name || '', front: r.front || r.blob || null, back: r.back || null, createdAt: r.createdAt || 0, updatedAt: r.updatedAt || 0 });
+
   const urls = new Map();
-  function urlFor(rec) {
-    const key = rec.id + ':' + (rec.updatedAt || rec.createdAt || 0);
-    if (!urls.has(key)) urls.set(key, URL.createObjectURL(rec.blob));
+  function urlFor(rec, side) {
+    const blob = rec[side];
+    if (!blob) return '';
+    const key = `${rec.id}:${side}:${rec.updatedAt || rec.createdAt}`;
+    if (!urls.has(key)) urls.set(key, URL.createObjectURL(blob));
     return urls.get(key);
   }
   function pruneUrls() {
-    const keep = new Set([...cards, ...overrides.values()].map(r => r.id + ':' + (r.updatedAt || r.createdAt || 0)));
+    const keep = new Set();
+    cards.forEach(r => ['front', 'back'].forEach(s => keep.add(`${r.id}:${s}:${r.updatedAt || r.createdAt}`)));
     for (const [k, u] of urls) if (!keep.has(k)) { URL.revokeObjectURL(u); urls.delete(k); }
   }
-  const findCard = id => overrides.get(id) || cards.find(c => c.id === id);
+  const findCard = id => cards.find(c => c.id === id);
 
   async function load() {
     const list = (await store.all()) || [];
     const av = list.find(r => r.id === AVATAR_ID);
     avatarBlob = av ? av.blob : null;
-    overrides = new Map(list.filter(r => r.id.startsWith('demo:')).map(r => [r.id, r]));
-    cards = list.filter(r => !r.id.startsWith('demo:') && !r.id.startsWith('__'))
-      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    cards = list.filter(r => !String(r.id).startsWith('__')).map(normalize).filter(r => r.front)
+      .sort((a, b) => a.createdAt - b.createdAt);
   }
 
   // ---------- profile ----------
   function initialsOf(name) {
     const parts = String(name || '').split(/[\s.]+/).filter(Boolean);
-    const s = parts.slice(0, 2).map(p => p[0]).join('').toUpperCase();
-    return s || '?';
+    return parts.slice(0, 2).map(p => p[0]).join('').toUpperCase() || '?';
   }
   function setAvatar(imgEl, initialsEl, blob, name) {
     initialsEl.textContent = initialsOf(name);
+    if (imgEl.dataset.url) URL.revokeObjectURL(imgEl.dataset.url);
     if (blob) {
       const u = URL.createObjectURL(blob);
-      if (imgEl.dataset.url) URL.revokeObjectURL(imgEl.dataset.url);
       imgEl.dataset.url = u;
       imgEl.src = u; imgEl.hidden = false; initialsEl.hidden = true;
     } else {
-      if (imgEl.dataset.url) URL.revokeObjectURL(imgEl.dataset.url);
       delete imgEl.dataset.url;
       imgEl.removeAttribute('src'); imgEl.hidden = true; initialsEl.hidden = false;
     }
@@ -164,9 +160,7 @@
     setAvatar($('#pfAvatarImg'), $('#pfInitials'), avatarBlob, profile.name);
     profileDialog.showModal();
   }
-  pfName.addEventListener('input', () => {
-    if (!$('#pfInitials').hidden || pfPending === null) $('#pfInitials').textContent = initialsOf(pfName.value);
-  });
+  pfName.addEventListener('input', () => { $('#pfInitials').textContent = initialsOf(pfName.value); });
   $('#pfAvatarFile').addEventListener('change', async e => {
     const file = e.target.files && e.target.files[0];
     if (!checkFile(file)) return;
@@ -193,7 +187,6 @@
     profile = { name, email };
     LS.set('echina.profile', profile);
     renderProfile();
-    render();
     profileDialog.close();
     toast('Профайл хадгалагдлаа');
   });
@@ -202,69 +195,83 @@
 
   // ---------- carousel ----------
   const carousel = $('#carousel'), dots = $('#dots');
-  let activeIndex = 1; // Figma shows Echina Pay centred
+  let activeIndex = 0;
 
-  function demoCard(d) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'ccard demo';
-    b.dataset.id = d.id;
-    b.style.setProperty('--cbg', d.bg);
-    b.style.setProperty('--fg', d.fg);
-    b.setAttribute('aria-label', `${d.kind} картыг засах`);
-    b.innerHTML =
-      '<span class="ctop"><span class="brand"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18.5 15.5A7.5 7.5 0 1 1 19 9H8"/></svg>ECHINA</span><span class="kind"></span></span>' +
-      '<span class="cval"><span class="val"></span><span class="vl"></span></span>' +
-      '<span class="cbot"><span class="holder"></span><span class="code"></span></span>';
-    b.querySelector('.kind').textContent = d.kind;
-    b.querySelector('.val').textContent = d.val;
-    b.querySelector('.vl').textContent = d.vl;
-    b.querySelector('.holder').textContent = profile.name.toUpperCase();
-    b.querySelector('.code').textContent = d.code;
-    b.addEventListener('click', () => openSheet({ mode: 'demo', id: d.id }));
-    return b;
-  }
+  function flipCard(rec) {
+    const wrap = document.createElement('div');
+    wrap.className = 'ccard flip';
+    wrap.dataset.id = rec.id;
 
-  function imageCard(rec) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'ccard';
-    b.dataset.id = rec.id;
-    b.style.backgroundImage = `url("${urlFor(rec)}")`;
-    b.setAttribute('aria-label', `${rec.name} картыг нээх`);
-    const cap = document.createElement('span');
-    cap.className = 'cap';
-    cap.textContent = rec.name;
-    b.appendChild(cap);
-    b.addEventListener('click', () => openViewer(rec.id));
-    return b;
+    const inner = document.createElement('button');
+    inner.type = 'button';
+    inner.className = 'inner';
+    inner.setAttribute('aria-pressed', 'false');
+    inner.setAttribute('aria-label', `${rec.name || 'Карт'}: эргүүлж ард талыг харах`);
+
+    const front = document.createElement('span');
+    front.className = 'face front';
+    front.style.backgroundImage = `url("${urlFor(rec, 'front')}")`;
+    if (rec.back) {
+      const hint = document.createElement('span');
+      hint.className = 'hint';
+      hint.innerHTML = ICON_FLIP + 'Эргүүлэх';
+      front.appendChild(hint);
+    }
+
+    const back = document.createElement('span');
+    if (rec.back) {
+      back.className = 'face back';
+      back.style.backgroundImage = `url("${urlFor(rec, 'back')}")`;
+    } else {
+      back.className = 'face back empty';
+      back.innerHTML = 'Ард талын зураг алга<small>Засах товчоор нэмнэ үү</small>';
+    }
+    inner.append(front, back);
+    for (const side of ['l', 'r', 't', 'b']) {
+      const e = document.createElement('span');
+      e.className = 'edge ' + side;
+      e.setAttribute('aria-hidden', 'true');
+      inner.appendChild(e);
+    }
+    inner.addEventListener('click', () => {
+      const i = [...carousel.children].indexOf(wrap);
+      if (i >= 0 && i !== activeIndex) { scrollToIndex(i); return; }
+      const on = !wrap.classList.contains('flipped');
+      wrap.classList.toggle('flipped', on);
+      inner.setAttribute('aria-pressed', String(on));
+    });
+
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'edit';
+    edit.setAttribute('aria-label', `${rec.name || 'Карт'} засах`);
+    edit.innerHTML = ICON_EDIT;
+    edit.addEventListener('click', () => openSheet({ mode: 'edit', id: rec.id }));
+
+    wrap.append(inner, edit);
+    return wrap;
   }
 
   function render(focusId) {
     pruneUrls();
     carousel.replaceChildren();
-    DEMO.forEach((d, i) => {
-      const o = overrides.get(d.id);
-      if (o) carousel.appendChild(imageCard(o));
-      else if (!hiddenDemos.includes(i)) carousel.appendChild(demoCard(d));
-    });
-    cards.forEach(c => carousel.appendChild(imageCard(c)));
+    cards.forEach(c => carousel.appendChild(flipCard(c)));
 
     const add = document.createElement('button');
     add.type = 'button';
     add.className = 'ccard add';
-    add.innerHTML = '<span class="plus" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><strong>Карт нэмэх</strong><small>Картынхаа зургийг оруулаарай</small>';
+    add.dataset.id = '__add';
+    add.innerHTML = '<span class="plus" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><strong>Карт нэмэх</strong><small>Урд, ард талын зургийг оруулна</small>';
     add.addEventListener('click', () => openSheet({ mode: 'add' }));
     carousel.appendChild(add);
 
     dots.replaceChildren();
     for (let i = 0; i < carousel.children.length; i++) dots.appendChild(document.createElement('span'));
 
-    const all = [...cards, ...overrides.values()];
-    $('#statCount').textContent = all.length;
-    const bytes = all.reduce((s, c) => s + (c.blob ? c.blob.size : 0), 0);
+    $('#statCount').textContent = cards.length;
+    const bytes = cards.reduce((s, c) => s + (c.front ? c.front.size : 0) + (c.back ? c.back.size : 0), 0);
     $('#statSize').textContent = (bytes / 1048576).toFixed(1) + ' MB';
-    const last = all.reduce((m, c) => Math.max(m, c.updatedAt || c.createdAt || 0), 0);
+    const last = cards.reduce((m, c) => Math.max(m, c.updatedAt || c.createdAt), 0);
     $('#statLast').textContent = last ? new Date(last).toLocaleDateString('mn-MN', { month: '2-digit', day: '2-digit' }) : '—';
 
     if (focusId) {
@@ -281,18 +288,34 @@
     const left = el.offsetLeft - (carousel.clientWidth - el.offsetWidth) / 2;
     carousel.scrollTo({ left, behavior: smooth ? 'smooth' : 'auto' });
   }
+
+  // Coverflow: side cards turn toward the centre so their edges show
   function updateCarousel() {
     const mid = carousel.scrollLeft + carousel.clientWidth / 2;
     let best = 0, bestD = Infinity;
     [...carousel.children].forEach((el, i) => {
       const c = el.offsetLeft + el.offsetWidth / 2;
+      const raw = (c - mid) / (el.offsetWidth + 12);
+      const s = Math.max(-1, Math.min(1, raw));
+      const a = Math.abs(s);
+      // inner edge turns toward the viewer, so the card's thickness shows
+      el.style.transform = `perspective(900px) translateX(${(-s * 22).toFixed(1)}px) rotateY(${(s * 30).toFixed(2)}deg) scale(${(1 - a * 0.16).toFixed(3)})`;
+      if (el.classList.contains('flip')) el.style.setProperty('--dim', (a * 0.4).toFixed(3));
+      else el.style.opacity = String(1 - a * 0.45);
       const d = Math.abs(c - mid);
-      const t = Math.min(d / (el.offsetWidth + 12), 1);
-      el.style.transform = `scale(${1 - t * 0.12})`;
-      el.style.opacity = String(1 - t * 0.5);
       if (d < bestD) { bestD = d; best = i; }
     });
+    if (best !== activeIndex) {
+      [...carousel.children].forEach((el, i) => {
+        if (i !== best && el.classList.contains('flipped')) {
+          el.classList.remove('flipped');
+          const btn = el.querySelector('.inner');
+          if (btn) btn.setAttribute('aria-pressed', 'false');
+        }
+      });
+    }
     activeIndex = best;
+    [...carousel.children].forEach((el, i) => el.classList.toggle('active', i === best));
     [...dots.children].forEach((d, i) => d.classList.toggle('on', i === best));
   }
   let raf = 0;
@@ -304,95 +327,91 @@
 
   // ---------- add / edit sheet ----------
   const addDialog = $('#addDialog');
-  const previewImg = $('#previewImg'), previewEmpty = $('#previewEmpty'), preview = $('#preview');
   const nameInput = $('#cardName'), saveBtn = $('#saveAdd'), sheetDelete = $('#deleteFromSheet');
+  const slots = { front: $('#slotFront'), back: $('#slotBack') };
+  const removeBackBtn = $('#removeBack');
   let sheet = { mode: 'add' };
-  let pendingBlob = null, pendingUrl = null;
+  // per side: undefined = unchanged, null = removed, Blob = new image
+  let pending = {};
+  const tmpUrls = [];
 
-  function clearPreview() {
-    preview.querySelectorAll('.ccard').forEach(n => n.remove());
-    previewImg.hidden = true; previewImg.removeAttribute('src');
-    previewEmpty.hidden = false; preview.classList.remove('has');
+  function showSlot(side, url) {
+    const slot = slots[side];
+    const img = slot.querySelector('img');
+    const empty = slot.querySelector('.slot-empty');
+    if (url) { img.src = url; img.hidden = false; empty.hidden = true; slot.classList.add('has'); }
+    else { img.removeAttribute('src'); img.hidden = true; empty.hidden = false; slot.classList.remove('has'); }
+    if (side === 'back') removeBackBtn.hidden = !url;
   }
-  function showPreviewUrl(u) {
-    preview.querySelectorAll('.ccard').forEach(n => n.remove());
-    previewImg.src = u; previewImg.hidden = false;
-    previewEmpty.hidden = true; preview.classList.add('has');
+  function currentHas(side) {
+    if (pending[side] instanceof Blob) return true;
+    if (pending[side] === null) return false;
+    const rec = sheet.id && findCard(sheet.id);
+    return !!(rec && rec[side]);
   }
+  function updateSave() { saveBtn.disabled = !currentHas('front'); }
+
   function resetSheet() {
-    pendingBlob = null;
-    if (pendingUrl) URL.revokeObjectURL(pendingUrl);
-    pendingUrl = null;
-    clearPreview();
+    pending = {};
+    tmpUrls.splice(0).forEach(u => URL.revokeObjectURL(u));
+    showSlot('front', ''); showSlot('back', '');
     nameInput.value = '';
-    $('#fileGallery').value = ''; $('#fileCamera').value = '';
+    $('#fileFront').value = ''; $('#fileBack').value = '';
     saveBtn.disabled = true;
   }
   function openSheet(opts) {
     resetSheet();
     sheet = opts;
-    const title = $('#addTitle');
-    if (opts.mode === 'add') {
-      title.textContent = 'Карт нэмэх';
-      sheetDelete.hidden = true;
-    } else if (opts.mode === 'edit') {
+    if (opts.mode === 'edit') {
       const rec = findCard(opts.id);
       if (!rec) return;
-      title.textContent = 'Карт засах';
-      showPreviewUrl(urlFor(rec));
+      $('#addTitle').textContent = 'Карт засах';
+      showSlot('front', urlFor(rec, 'front'));
+      showSlot('back', urlFor(rec, 'back'));
       nameInput.value = rec.name;
-      saveBtn.disabled = false;
       sheetDelete.hidden = false;
-    } else if (opts.mode === 'demo') {
-      const d = DEMO.find(x => x.id === opts.id);
-      title.textContent = 'Карт засах';
-      const clone = demoCard(d);
-      clone.tabIndex = -1;
-      previewEmpty.hidden = true; preview.classList.add('has');
-      preview.appendChild(clone);
-      nameInput.value = d.kind;
-      sheetDelete.hidden = false;
+    } else {
+      $('#addTitle').textContent = 'Карт нэмэх';
+      sheetDelete.hidden = true;
     }
+    updateSave();
     addDialog.showModal();
   }
 
-  async function onFile(e) {
+  async function onSlotFile(side, e) {
     const file = e.target.files && e.target.files[0];
+    e.target.value = '';
     if (!checkFile(file)) return;
-    saveBtn.disabled = true;
     try {
-      pendingBlob = await resizeImage(file);
-      if (pendingUrl) URL.revokeObjectURL(pendingUrl);
-      pendingUrl = URL.createObjectURL(pendingBlob);
-      showPreviewUrl(pendingUrl);
-      saveBtn.disabled = false;
-      if (!nameInput.value) nameInput.focus();
+      const blob = await resizeImage(file);
+      pending[side] = blob;
+      const u = URL.createObjectURL(blob);
+      tmpUrls.push(u);
+      showSlot(side, u);
+      updateSave();
     } catch {
       toast('Зургийг уншиж чадсангүй, өөр зураг сонгоно уу');
-      saveBtn.disabled = sheet.mode !== 'edit';
     }
   }
-  $('#fileGallery').addEventListener('change', onFile);
-  $('#fileCamera').addEventListener('change', onFile);
+  $('#fileFront').addEventListener('change', e => onSlotFile('front', e));
+  $('#fileBack').addEventListener('change', e => onSlotFile('back', e));
+  removeBackBtn.addEventListener('click', () => { pending.back = null; showSlot('back', ''); });
   $('#cancelAdd').addEventListener('click', () => addDialog.close());
   addDialog.addEventListener('close', resetSheet);
 
   saveBtn.addEventListener('click', async () => {
     const name = nameInput.value.trim();
     const now = Date.now();
+    const pick = (side, old) => pending[side] === undefined ? old : pending[side];
     let rec;
-    if (sheet.mode === 'add') {
-      if (!pendingBlob) return;
-      rec = { id: uid(), name: name || `Карт ${cards.length + 1}`, blob: pendingBlob, createdAt: now };
-    } else if (sheet.mode === 'edit') {
+    if (sheet.mode === 'edit') {
       const old = findCard(sheet.id);
       if (!old) return;
-      rec = Object.assign({}, old, { name: name || old.name, blob: pendingBlob || old.blob, updatedAt: now });
+      rec = { ...old, name, front: pick('front', old.front), back: pick('back', old.back), updatedAt: now };
     } else {
-      if (!pendingBlob) return;
-      const d = DEMO.find(x => x.id === sheet.id);
-      rec = { id: d.id, name: name || d.kind, blob: pendingBlob, createdAt: now };
+      rec = { id: uid(), name, front: pending.front || null, back: pending.back || null, createdAt: now, updatedAt: 0 };
     }
+    if (!rec.front) { toast('Урд талын зургийг оруулна уу'); return; }
     saveBtn.disabled = true;
     try {
       await store.put(rec);
@@ -401,25 +420,18 @@
       toast('Хадгалах зай хүрэлцэхгүй байна');
       return;
     }
-    if (rec.id.startsWith('demo:')) overrides.set(rec.id, rec);
-    else if (sheet.mode === 'add') cards.push(rec);
-    else cards = cards.map(c => c.id === rec.id ? rec : c);
     const mode = sheet.mode;
+    if (mode === 'edit') cards = cards.map(c => c.id === rec.id ? rec : c);
+    else cards.push(rec);
     addDialog.close();
     render(rec.id);
-    toast(mode === 'add' ? 'Карт нэмэгдлээ' : 'Карт шинэчлэгдлээ');
+    toast(mode === 'edit' ? 'Карт шинэчлэгдлээ' : 'Карт нэмэгдлээ');
   });
 
   async function deleteCard(id) {
     if (!confirm('Энэ картыг устгах уу?')) return false;
-    if (id.startsWith('demo:')) {
-      if (overrides.has(id)) { await store.remove(id); overrides.delete(id); }
-      const i = DEMO.findIndex(d => d.id === id);
-      if (!hiddenDemos.includes(i)) { hiddenDemos.push(i); LS.set('echina.hiddenDemos', hiddenDemos); }
-    } else {
-      await store.remove(id);
-      cards = cards.filter(c => c.id !== id);
-    }
+    await store.remove(id);
+    cards = cards.filter(c => c.id !== id);
     render();
     toast('Карт устгагдлаа');
     return true;
@@ -428,16 +440,18 @@
     if (sheet.id && await deleteCard(sheet.id)) addDialog.close();
   });
 
-  // ---------- viewer ----------
+  // ---------- viewer (both sides) ----------
   const viewDialog = $('#viewDialog');
   let viewingId = null;
   function openViewer(id) {
     const rec = findCard(id);
     if (!rec) return;
     viewingId = id;
-    $('#viewTitle').textContent = rec.name;
-    const img = $('#viewImg');
-    img.src = urlFor(rec); img.alt = rec.name;
+    $('#viewTitle').textContent = rec.name || 'Карт';
+    $('#viewFront').src = urlFor(rec, 'front');
+    const hasBack = !!rec.back;
+    $('#viewBackWrap').hidden = !hasBack;
+    if (hasBack) $('#viewBack').src = urlFor(rec, 'back');
     if (allDialog.open) allDialog.close();
     viewDialog.showModal();
   }
@@ -456,23 +470,27 @@
   $('#allBtn').addEventListener('click', () => {
     const grid = $('#grid');
     grid.replaceChildren();
-    const items = [...carousel.children].filter(el => !el.classList.contains('add'));
-    if (!items.length) {
+    if (!cards.length) {
       const p = document.createElement('p');
       p.className = 'empty';
       p.textContent = 'Одоогоор карт алга байна.';
       grid.appendChild(p);
     } else {
-      DEMO.forEach((d, i) => {
-        const o = overrides.get(d.id);
-        if (o) grid.appendChild(imageCard(o));
-        else if (!hiddenDemos.includes(i)) {
-          const b = demoCard(d);
-          b.addEventListener('click', () => allDialog.close());
-          grid.appendChild(b);
+      cards.forEach(c => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ccard';
+        b.style.backgroundImage = `url("${urlFor(c, 'front')}")`;
+        b.setAttribute('aria-label', `${c.name || 'Карт'} нээх`);
+        if (c.name) {
+          const cap = document.createElement('span');
+          cap.className = 'cap';
+          cap.textContent = c.name;
+          b.appendChild(cap);
         }
+        b.addEventListener('click', () => openViewer(c.id));
+        grid.appendChild(b);
       });
-      cards.forEach(c => grid.appendChild(imageCard(c)));
     }
     allDialog.showModal();
   });

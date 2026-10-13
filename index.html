@@ -92,27 +92,27 @@
   <form method="dialog" id="addForm">
     <div class="grab" aria-hidden="true"></div>
     <h3 id="addTitle">Карт нэмэх</h3>
-    <div class="preview" id="preview">
-      <div class="preview-empty" id="previewEmpty">
-        <svg aria-hidden="true" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>
-        <span>Картынхаа зургийг сонгоно уу</span>
+    <div class="sides">
+      <div class="side">
+        <span class="side-label">Урд тал</span>
+        <label class="slot" id="slotFront">
+          <input type="file" accept="image/*" id="fileFront" aria-label="Урд талын зураг сонгох">
+          <img alt="Урд тал" hidden>
+          <span class="slot-empty"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Зураг нэмэх</span>
+        </label>
       </div>
-      <img id="previewImg" alt="" hidden>
-    </div>
-    <div class="pick-row">
-      <label class="pick">
-        <input type="file" accept="image/*" id="fileGallery">
-        <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>
-        Зургаас сонгох
-      </label>
-      <label class="pick">
-        <input type="file" accept="image/*" capture="environment" id="fileCamera">
-        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-        Камераар авах
-      </label>
+      <div class="side">
+        <span class="side-label">Ард тал</span>
+        <label class="slot" id="slotBack">
+          <input type="file" accept="image/*" id="fileBack" aria-label="Ард талын зураг сонгох">
+          <img alt="Ард тал" hidden>
+          <span class="slot-empty"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Зураг нэмэх</span>
+        </label>
+        <button type="button" class="link-btn small" id="removeBack" hidden>Ард талыг арилгах</button>
+      </div>
     </div>
     <label class="field">
-      <span>Картын нэр</span>
+      <span>Нэр (заавал биш)</span>
       <input type="text" id="cardName" maxlength="40" placeholder="Жишээ: Фитнесийн карт" autocomplete="off">
     </label>
     <p class="note">Зураг зөвхөн таны төхөөрөмж дээр хадгалагдана, сервер рүү илгээгдэхгүй.</p>
@@ -163,7 +163,10 @@
     <h3 id="viewTitle">Карт</h3>
     <button type="button" class="icon-btn" id="closeView" aria-label="Хаах"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
-  <div class="viewer-img"><img id="viewImg" alt=""></div>
+  <div class="viewer-img">
+    <figure><img id="viewFront" alt="Урд тал"><figcaption>Урд тал</figcaption></figure>
+    <figure id="viewBackWrap"><img id="viewBack" alt="Ард тал"><figcaption>Ард тал</figcaption></figure>
+  </div>
   <div class="viewer-actions">
     <button type="button" class="btn secondary" id="editCard">Засах</button>
     <button type="button" class="btn danger" id="deleteCard">Устгах</button>
