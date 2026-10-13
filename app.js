@@ -178,7 +178,6 @@
     const name = pfName.value.trim();
     const email = pfEmail.value.trim();
     if (!name) { pfError.textContent = 'Нэрээ оруулна уу'; pfError.hidden = false; pfName.focus(); return; }
-    if (email && !pfEmail.checkValidity()) { pfError.textContent = 'Имэйл хаяг буруу байна'; pfError.hidden = false; pfEmail.focus(); return; }
     pfError.hidden = true;
     try {
       if (pfPending instanceof Blob) { await store.put({ id: AVATAR_ID, blob: pfPending, createdAt: Date.now() }); avatarBlob = pfPending; }
