@@ -523,10 +523,6 @@
     expandBtn.setAttribute('aria-expanded', String(open));
     stats.hidden = !open;
   });
-  document.querySelectorAll('[data-soon]').forEach(el => el.addEventListener('click', () => toast('Удахгүй нэмэгдэнэ')));
-  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-    if (t.dataset.tab !== 'profile') toast('Удахгүй нэмэгдэнэ');
-  }));
 
 
   // ---------- add to home screen ----------
