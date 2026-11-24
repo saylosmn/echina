@@ -201,6 +201,14 @@
     wrap.className = 'ccard flip';
     wrap.dataset.id = rec.id;
 
+    if (rec.back) {
+      const sidePeek = document.createElement('span');
+      sidePeek.className = 'side-peek';
+      sidePeek.setAttribute('aria-hidden', 'true');
+      sidePeek.style.backgroundImage = `url("${urlFor(rec, 'back')}")`;
+      wrap.appendChild(sidePeek);
+    }
+
     const inner = document.createElement('div');
     inner.className = 'inner';
     inner.tabIndex = 0;
