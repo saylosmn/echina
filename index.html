@@ -176,9 +176,9 @@
 </dialog>
 
 <!-- View card -->
-<dialog class="viewer" id="viewDialog" aria-labelledby="viewTitle">
+<dialog class="viewer" id="viewDialog" aria-label="Картын дэлгэрэнгүй">
   <div class="viewer-top">
-    <h3 id="viewTitle">Карт</h3>
+    <h3 id="viewTitle" hidden>Карт</h3>
     <button type="button" class="icon-btn" id="closeView" aria-label="Хаах"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
   <div class="viewer-img">
@@ -189,10 +189,19 @@
     <button type="button" class="service-btn" id="referenceBtn">Лавлагаа авах</button>
     <button type="button" class="service-btn secondary" id="reorderBtn">Дахин захиалах</button>
   </div>
-  <div class="viewer-actions">
-    <button type="button" class="btn secondary" id="editCard">Засах</button>
-    <button type="button" class="btn danger" id="deleteCard">Устгах</button>
-  </div>
+  <button type="button" class="btn primary verify-btn" id="verifyBtn">Баталгаажуулах</button>
+  <form class="details-form" id="detailsForm" hidden>
+    <p class="note">Мэдээлэл зөвхөн энэ төхөөрөмжид хадгалагдана. Төрийн байгууллагад бодитоор баталгаажуулахгүй.</p>
+    <label class="field"><span>Овог</span><input type="text" id="detailSurname" autocomplete="family-name" required></label>
+    <label class="field"><span>Нэр</span><input type="text" id="detailGivenName" autocomplete="given-name" required></label>
+    <label class="field"><span>Хүйс</span><select id="detailGender" required><option value="" disabled>Сонгоно уу</option><option value="Эрэгтэй">Эрэгтэй</option><option value="Эмэгтэй">Эмэгтэй</option><option value="Бусад">Бусад</option></select></label>
+    <label class="field"><span>Төрсөн огноо</span><input type="date" id="detailBirthDate" required></label>
+    <label class="field"><span>Регистрийн дугаар</span><input type="text" id="detailRegNumber" autocomplete="off" required></label>
+    <label class="field"><span>Үнэмлэхийн дугаар</span><input type="text" id="detailCardNumber" autocomplete="off" required></label>
+    <label class="field"><span>Олгосон огноо</span><input type="date" id="detailIssueDate" required></label>
+    <label class="field"><span>Дуусах огноо</span><input type="date" id="detailExpiryDate" required></label>
+    <button type="submit" class="btn primary save-details">Мэдээлэл хадгалах</button>
+  </form>
 </dialog>
 
 <!-- All cards -->

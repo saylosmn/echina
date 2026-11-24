@@ -188,9 +188,9 @@ dialog::backdrop{background:rgba(8,11,18,.7)}
 .btn.secondary{background:var(--panel)}
 .btn.danger{background:#3a2430;color:#ff8a8a;width:100%}
 
-.viewer{width:100%;max-width:440px;height:100dvh;max-height:none;margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) 16px calc(20px + env(safe-area-inset-bottom));border:0;background:#26364a;display:none;flex-direction:column}
+.viewer{width:100%;max-width:440px;height:100dvh;max-height:none;margin:0 auto;padding:calc(env(safe-area-inset-top) + 16px) 16px calc(20px + env(safe-area-inset-bottom));border:0;background:#26364a;display:none;flex-direction:column;overflow-y:auto}
 .viewer[open]{display:flex}
-.viewer-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.viewer-top{display:flex;align-items:center;justify-content:flex-end;gap:12px}
 .viewer-top h3{margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .viewer-img{flex:1;display:grid;place-items:center;min-height:0;padding:16px 0}
 .viewer-img img{max-width:100%;max-height:100%;border-radius:16px;object-fit:contain;cursor:pointer;touch-action:manipulation}
@@ -198,10 +198,13 @@ dialog::backdrop{background:rgba(8,11,18,.7)}
 .icon-btn svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round}
 .viewer-service-actions{display:grid;gap:8px;margin:0 10px 12px}
 .service-btn{height:48px;border:0;border-radius:12px;background:linear-gradient(180deg,#1760ad,#124783);color:#fff;font-size:14px;font-weight:600;box-shadow:0 4px 10px rgba(0,0,0,.15)}
-.service-btn.secondary{height:40px;background:linear-gradient(180deg,#173c6c,#15345d);font-size:12px;font-weight:500}
-.viewer-actions{grid-template-columns:1fr 1fr;gap:10px}
-.viewer-actions .btn{height:44px;font-size:14px;background:rgba(20,30,45,.65)}
-.viewer-actions .btn.danger{background:#3a2430;color:#ffaaaa}
+.service-btn.secondary{height:48px;background:linear-gradient(180deg,#173c6c,#15345d);font-size:14px;font-weight:600}
+.verify-btn{width:100%;margin-bottom:14px}
+.details-form{margin:0 2px 10px;padding:0 0 8px}
+.details-form .note{margin:0 0 10px}
+.details-form .field{margin-top:12px}
+.field select{height:50px;border-radius:14px;border:1px solid #3a4560;background:#1a2130;padding:0 14px;font-size:16px;font-weight:600;color:#fff}
+.save-details{width:100%;margin-top:18px}
 
 .sheet.tall{min-height:60dvh}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}

@@ -99,7 +99,7 @@
   let avatarBlob = null;
 
   // older saves kept a single `blob`; treat it as the front side
-  const normalize = r => ({ id: r.id, name: r.name || '', front: r.front || r.blob || null, back: r.back || null, createdAt: r.createdAt || 0, updatedAt: r.updatedAt || 0 });
+  const normalize = r => ({ id: r.id, name: r.name || '', front: r.front || r.blob || null, back: r.back || null, details: r.details || {}, createdAt: r.createdAt || 0, updatedAt: r.updatedAt || 0 });
 
   const urls = new Map();
   function urlFor(rec, side) {
@@ -426,6 +426,12 @@
   const viewDialog = $('#viewDialog');
   const viewFrontWrap = $('#viewFrontWrap'), viewBackWrap = $('#viewBackWrap');
   const viewFront = $('#viewFront'), viewBack = $('#viewBack');
+  const detailsForm = $('#detailsForm');
+  const detailInputs = {
+    surname: $('#detailSurname'), givenName: $('#detailGivenName'), gender: $('#detailGender'),
+    birthDate: $('#detailBirthDate'), regNumber: $('#detailRegNumber'), cardNumber: $('#detailCardNumber'),
+    issueDate: $('#detailIssueDate'), expiryDate: $('#detailExpiryDate')
+  };
   let viewingId = null;
   let viewerShowingBack = false;
   function openViewer(id) {
@@ -433,7 +439,10 @@
     if (!rec) return;
     viewingId = id;
     viewerShowingBack = false;
-    $('#viewTitle').textContent = rec.name || 'Карт';
+    $('#viewTitle').textContent = '';
+    detailsForm.reset();
+    detailsForm.hidden = true;
+    Object.entries(detailInputs).forEach(([key, input]) => { input.value = rec.details?.[key] || ''; });
     viewFront.src = urlFor(rec, 'front');
     const hasBack = !!rec.back;
     viewFrontWrap.hidden = false;
@@ -452,13 +461,21 @@
   }
   viewFront.addEventListener('click', toggleViewerSide);
   viewBack.addEventListener('click', toggleViewerSide);
-  $('#editCard').addEventListener('click', () => {
-    const id = viewingId;
-    viewDialog.close();
-    if (id) openSheet({ mode: 'edit', id });
+  $('#verifyBtn').addEventListener('click', () => {
+    detailsForm.hidden = false;
+    detailsForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
-  $('#deleteCard').addEventListener('click', async () => {
-    if (viewingId && await deleteCard(viewingId)) { viewingId = null; viewDialog.close(); }
+  detailsForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!detailsForm.reportValidity()) return;
+    const old = viewingId && findCard(viewingId);
+    if (!old) return;
+    const details = Object.fromEntries(Object.entries(detailInputs).map(([key, input]) => [key, input.value.trim()]));
+    const updated = { ...old, details, updatedAt: Date.now() };
+    try { await store.put(updated); }
+    catch { toast('Мэдээллийг төхөөрөмжид хадгалж чадсангүй'); return; }
+    cards = cards.map(card => card.id === updated.id ? updated : card);
+    toast('Мэдээлэл энэ төхөөрөмжид хадгалагдлаа');
   });
   $('#referenceBtn').addEventListener('click', () => toast('Лавлагаа авах үйлчилгээ одоогоор холбогдоогүй байна'));
   $('#reorderBtn').addEventListener('click', () => toast('Дахин захиалах үйлчилгээ одоогоор холбогдоогүй байна'));
