@@ -64,7 +64,6 @@
   }
   const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
   const ICON_EDIT = '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
-  const ICON_FLIP = '<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M6 21v-4h4"/></svg>';
 
   async function resizeImage(file, max = 1600) {
     let src, w, h;
@@ -218,11 +217,6 @@
     const front = document.createElement('span');
     front.className = 'face front';
     front.style.backgroundImage = `url("${urlFor(rec, 'front')}")`;
-    const flipBtn = document.createElement('button');
-    flipBtn.type = 'button';
-    flipBtn.className = 'flip-action';
-    flipBtn.setAttribute('aria-label', `${rec.name || 'Карт'} эргүүлэх`);
-    flipBtn.innerHTML = ICON_FLIP + '<span>Эргүүлэх</span>';
 
     const back = document.createElement('span');
     if (rec.back) {
@@ -244,13 +238,7 @@
     inner.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCard(); }
     });
-    flipBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      const on = !wrap.classList.contains('flipped');
-      wrap.classList.toggle('flipped', on);
-      flipBtn.setAttribute('aria-pressed', String(on));
-    });
-    wrap.append(inner, flipBtn);
+    wrap.append(inner);
     return wrap;
   }
 
@@ -308,15 +296,6 @@
       const d = Math.abs(c - mid);
       if (d < bestD) { bestD = d; best = i; }
     });
-    if (best !== activeIndex) {
-      [...carousel.children].forEach((el, i) => {
-        if (i !== best && el.classList.contains('flipped')) {
-          el.classList.remove('flipped');
-          const btn = el.querySelector('.flip-action');
-          if (btn) btn.setAttribute('aria-pressed', 'false');
-        }
-      });
-    }
     activeIndex = best;
     [...carousel.children].forEach((el, i) => el.classList.toggle('active', i === best));
     [...dots.children].forEach((d, i) => d.classList.toggle('on', i === best));
@@ -445,7 +424,8 @@
 
   // ---------- viewer (both sides) ----------
   const viewDialog = $('#viewDialog');
-  const viewFrontWrap = $('#viewFrontWrap'), viewBackWrap = $('#viewBackWrap'), viewFlipBtn = $('#viewFlipBtn');
+  const viewFrontWrap = $('#viewFrontWrap'), viewBackWrap = $('#viewBackWrap');
+  const viewFront = $('#viewFront'), viewBack = $('#viewBack');
   let viewingId = null;
   let viewerShowingBack = false;
   function openViewer(id) {
@@ -454,23 +434,24 @@
     viewingId = id;
     viewerShowingBack = false;
     $('#viewTitle').textContent = rec.name || 'Карт';
-    $('#viewFront').src = urlFor(rec, 'front');
+    viewFront.src = urlFor(rec, 'front');
     const hasBack = !!rec.back;
     viewFrontWrap.hidden = false;
     viewBackWrap.hidden = true;
-    viewFlipBtn.hidden = !hasBack;
-    if (hasBack) $('#viewBack').src = urlFor(rec, 'back');
+    if (hasBack) viewBack.src = urlFor(rec, 'back');
     if (allDialog.open) allDialog.close();
     viewDialog.showModal();
   }
   $('#closeView').addEventListener('click', () => viewDialog.close());
-  viewFlipBtn.addEventListener('click', () => {
+  function toggleViewerSide() {
     const rec = viewingId && findCard(viewingId);
     if (!rec || !rec.back) return;
     viewerShowingBack = !viewerShowingBack;
     viewFrontWrap.hidden = viewerShowingBack;
     viewBackWrap.hidden = !viewerShowingBack;
-  });
+  }
+  viewFront.addEventListener('click', toggleViewerSide);
+  viewBack.addEventListener('click', toggleViewerSide);
   $('#editCard').addEventListener('click', () => {
     const id = viewingId;
     viewDialog.close();
