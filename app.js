@@ -445,20 +445,32 @@
 
   // ---------- viewer (both sides) ----------
   const viewDialog = $('#viewDialog');
+  const viewFrontWrap = $('#viewFrontWrap'), viewBackWrap = $('#viewBackWrap'), viewFlipBtn = $('#viewFlipBtn');
   let viewingId = null;
+  let viewerShowingBack = false;
   function openViewer(id) {
     const rec = findCard(id);
     if (!rec) return;
     viewingId = id;
+    viewerShowingBack = false;
     $('#viewTitle').textContent = rec.name || 'Карт';
     $('#viewFront').src = urlFor(rec, 'front');
     const hasBack = !!rec.back;
-    $('#viewBackWrap').hidden = !hasBack;
+    viewFrontWrap.hidden = false;
+    viewBackWrap.hidden = true;
+    viewFlipBtn.hidden = !hasBack;
     if (hasBack) $('#viewBack').src = urlFor(rec, 'back');
     if (allDialog.open) allDialog.close();
     viewDialog.showModal();
   }
   $('#closeView').addEventListener('click', () => viewDialog.close());
+  viewFlipBtn.addEventListener('click', () => {
+    const rec = viewingId && findCard(viewingId);
+    if (!rec || !rec.back) return;
+    viewerShowingBack = !viewerShowingBack;
+    viewFrontWrap.hidden = viewerShowingBack;
+    viewBackWrap.hidden = !viewerShowingBack;
+  });
   $('#editCard').addEventListener('click', () => {
     const id = viewingId;
     viewDialog.close();
