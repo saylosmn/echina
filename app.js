@@ -194,28 +194,27 @@
 
   // ---------- carousel ----------
   const carousel = $('#carousel'), dots = $('#dots');
-  let activeIndex = 0;
+  let activeIndex = -1;
 
   function flipCard(rec) {
     const wrap = document.createElement('div');
     wrap.className = 'ccard flip';
     wrap.dataset.id = rec.id;
 
-    const inner = document.createElement('button');
-    inner.type = 'button';
+    const inner = document.createElement('div');
     inner.className = 'inner';
-    inner.setAttribute('aria-pressed', 'false');
-    inner.setAttribute('aria-label', `${rec.name || 'Карт'}: эргүүлж ард талыг харах`);
+    inner.tabIndex = 0;
+    inner.setAttribute('role', 'button');
+    inner.setAttribute('aria-label', `${rec.name || 'Карт'}: бүтнээр үзэх`);
 
     const front = document.createElement('span');
     front.className = 'face front';
     front.style.backgroundImage = `url("${urlFor(rec, 'front')}")`;
-    if (rec.back) {
-      const hint = document.createElement('span');
-      hint.className = 'hint';
-      hint.innerHTML = ICON_FLIP + 'Эргүүлэх';
-      front.appendChild(hint);
-    }
+    const flipBtn = document.createElement('button');
+    flipBtn.type = 'button';
+    flipBtn.className = 'flip-action';
+    flipBtn.setAttribute('aria-label', `${rec.name || 'Карт'} эргүүлэх`);
+    flipBtn.innerHTML = ICON_FLIP + '<span>Эргүүлэх</span>';
 
     const back = document.createElement('span');
     if (rec.back) {
@@ -223,7 +222,7 @@
       back.style.backgroundImage = `url("${urlFor(rec, 'back')}")`;
     } else {
       back.className = 'face back empty';
-      back.innerHTML = 'Ард талын зураг алга<small>Засах товчоор нэмнэ үү</small>';
+      back.innerHTML = 'Ард талын зураг алга<small>Карт засах хэсгээс нэмнэ үү</small>';
     }
     inner.append(front, back);
     for (const side of ['l', 'r', 't', 'b']) {
@@ -232,22 +231,18 @@
       e.setAttribute('aria-hidden', 'true');
       inner.appendChild(e);
     }
-    inner.addEventListener('click', () => {
-      const i = [...carousel.children].indexOf(wrap);
-      if (i >= 0 && i !== activeIndex) { scrollToIndex(i); return; }
+    const openCard = () => openViewer(rec.id);
+    inner.addEventListener('click', openCard);
+    inner.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCard(); }
+    });
+    flipBtn.addEventListener('click', e => {
+      e.stopPropagation();
       const on = !wrap.classList.contains('flipped');
       wrap.classList.toggle('flipped', on);
-      inner.setAttribute('aria-pressed', String(on));
+      flipBtn.setAttribute('aria-pressed', String(on));
     });
-
-    const edit = document.createElement('button');
-    edit.type = 'button';
-    edit.className = 'edit';
-    edit.setAttribute('aria-label', `${rec.name || 'Карт'} засах`);
-    edit.innerHTML = ICON_EDIT;
-    edit.addEventListener('click', () => openSheet({ mode: 'edit', id: rec.id }));
-
-    wrap.append(inner, edit);
+    wrap.append(inner, flipBtn);
     return wrap;
   }
 
@@ -277,6 +272,7 @@
       const idx = [...carousel.children].findIndex(el => el.dataset.id === focusId);
       if (idx >= 0) activeIndex = idx;
     }
+    if (activeIndex < 0) activeIndex = Math.floor(Math.max(0, cards.length - 1) / 2);
     activeIndex = Math.max(0, Math.min(activeIndex, carousel.children.length - 1));
     requestAnimationFrame(() => { scrollToIndex(activeIndex, false); updateCarousel(); });
   }
@@ -308,7 +304,7 @@
       [...carousel.children].forEach((el, i) => {
         if (i !== best && el.classList.contains('flipped')) {
           el.classList.remove('flipped');
-          const btn = el.querySelector('.inner');
+          const btn = el.querySelector('.flip-action');
           if (btn) btn.setAttribute('aria-pressed', 'false');
         }
       });
@@ -463,6 +459,8 @@
   $('#deleteCard').addEventListener('click', async () => {
     if (viewingId && await deleteCard(viewingId)) { viewingId = null; viewDialog.close(); }
   });
+  $('#referenceBtn').addEventListener('click', () => toast('Лавлагаа авах үйлчилгээ одоогоор холбогдоогүй байна'));
+  $('#reorderBtn').addEventListener('click', () => toast('Дахин захиалах үйлчилгээ одоогоор холбогдоогүй байна'));
 
   // ---------- all cards ----------
   const allDialog = $('#allDialog');
