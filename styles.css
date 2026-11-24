@@ -1,6 +1,6 @@
 :root{
-  --bg:#1e2533; --panel:#283143; --panel-2:#323c50; --line:#36405a;
-  --text:#ffffff; --muted:#c3cad8; --dim:#8d97ab; --nav:#161b26;
+  --bg:#1a232c; --panel:#29384b; --panel-2:#323f52; --line:#364355;
+  --text:#ffffff; --muted:#c3cad8; --dim:#8d97ab; --nav:#111317;
   --accent:#3b8de0; --accent-deep:#1f4f9e; --danger:#e03a3a;
 }
 *{box-sizing:border-box}
@@ -70,7 +70,7 @@ svg{flex:none}
 .scroll::-webkit-scrollbar{display:none}
 .scroll>*{flex-shrink:0}
 
-.panel{margin:0 16px;background:var(--panel);border-radius:22px;overflow:hidden}
+.panel{margin:0 26px;background:var(--panel);border-radius:16px;overflow:hidden}
 
 /* profile */
 .identity{width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;background:none;border:0;text-align:left}
@@ -94,9 +94,9 @@ svg{flex:none}
 .stats .l{font-size:12px;font-weight:600;color:#aab3c5}
 
 /* section head */
-.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 16px 0}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 26px 0}
 .sec-head h2{flex:1;margin:0;min-width:0;font-size:clamp(14px,3.7vw,16px);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pill{flex:none;height:36px;padding:0 12px;border-radius:22px;border:0;background:#c9d2e0;color:#1e2533;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px}
+.pill{flex:none;height:34px;padding:0 16px;border-radius:22px;border:0;background:#c9d2e0;color:#1e2533;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
 .pill.busy{opacity:.6}
 
 /* demo (built-in) cards — match the Figma Wallet Card */
@@ -134,7 +134,7 @@ svg{flex:none}
 .dots span.on{width:22px;background:#fff}
 
 .center{display:flex;justify-content:center}
-.ghost-btn{height:44px;padding:0 24px;border-radius:15px;border:0;background:var(--panel);font-size:13px;font-weight:500}
+.ghost-btn{height:44px;padding:0 24px;border-radius:15px;border:0;background:var(--panel);font-size:13px;font-weight:700}
 
 /* menu */
 .menu{padding:6px 12px}
